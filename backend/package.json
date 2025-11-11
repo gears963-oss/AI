@@ -1,29 +1,13 @@
 {
-  "name": "digit-plan-backend",
-  "version": "0.1.0",
+  "name": "prospectiq-backend",
   "private": true,
+  "version": "0.1.0",
   "type": "module",
+  "engines": { "node": ">=18" },
   "scripts": {
-    "dev": "tsx watch api.ts",
-    "start": "node --enable-source-maps dist/api.js",
-    "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "dev": "node api/local-dev.mjs",
+    "build": "echo \"no build needed\"",
+    "start": "node api/local-dev.mjs"
   },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.21.1",
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/node": "^22.7.4",
-    "tsx": "^4.19.1",
-    "vitest": "^2.1.4",
-    "typescript": "^5.6.3"
-  }
+  "dependencies": {}
 }
-
-

@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [{ "src": "api/score.js", "use": "@vercel/node" }],
+  "routes": [
+    {
+      "src": "/api/score",
+      "dest": "api/score.js",
+      "methods": ["POST", "OPTIONS"],
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      }
+    }
+  ]
+}
+
+
