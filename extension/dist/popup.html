@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>ProspectIQ - ICP</title>
+		<style>
+			body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; padding: 12px; width: 340px; }
+			h3 { margin: 0 0 10px; }
+			label { display: block; margin: 8px 0; }
+			input { width: 100%; box-sizing: border-box; padding: 6px 8px; }
+			.row { display: flex; gap: 8px; }
+			.row > label { flex: 1; }
+			button { padding: 8px 10px; border: 0; border-radius: 6px; cursor: pointer; }
+			.actions { display: flex; gap: 8px; margin-top: 10px; }
+		</style>
+	</head>
+	<body>
+		<h3>ICP actif</h3>
+
+		<label>
+			<div>Pays</div>
+			<input id="pays" placeholder="FR" />
+		</label>
+
+		<label>
+			<div>Secteurs (csv)</div>
+			<input id="secteurs" placeholder="ecommerce, retail" />
+		</label>
+
+		<div class="row">
+			<label>
+				<div>Taille min</div>
+				<input id="taille_min" type="number" placeholder="10" />
+			</label>
+			<label>
+				<div>Taille max</div>
+				<input id="taille_max" type="number" placeholder="200" />
+			</label>
+		</div>
+
+		<label>
+			<div>Roles (csv)</div>
+			<input id="roles" placeholder="CEO, VP Marketing" />
+		</label>
+
+		<label>
+			<div>Note Google max</div>
+			<input id="note_google_max" type="number" step="0.1" placeholder="4.2" />
+		</label>
+
+		<label>
+			<div>Technos incluses (csv)</div>
+			<input id="techno_inclues" placeholder="Shopify, WooCommerce" />
+		</label>
+
+		<label>
+			<div>Exclusions (mots, csv)</div>
+			<input id="exclusions_mots" placeholder="agence, freelance" />
+		</label>
+
+		<div class="actions">
+			<button id="save" style="background:#22c55e;color:#0f172a;font-weight:700">Enregistrer l’ICP</button>
+			<button id="load" style="background:#e2e8f0">Charger</button>
+		</div>
+
+		<script src="popup.js"></script>
+	</body>
+</html>
+
+
