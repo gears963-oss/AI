@@ -44,14 +44,23 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 					await fs.mkdir(dstIcons, { recursive: true });
 					await fs.copyFile(icon128Path, resolve(dstIcons, 'icon128.png'));
 				}
+				// Write manifest - will be overwritten by postbuild.cjs with correct paths
 				await fs.writeFile(resolve(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf-8');
-				// Copy popup.html (vanilla)
+				// Copy popup.html and popup.js (vanilla) to dist root
 				try {
-					const popupSrc = resolve(__dirname, 'popup.html');
-					const popupDst = resolve(outDir, 'popup.html');
-					const stat = await fs.stat(popupSrc);
-					if (stat.isFile()) {
-						await fs.copyFile(popupSrc, popupDst);
+					const popupHtmlSrc = resolve(__dirname, 'popup.html');
+					const popupHtmlDst = resolve(outDir, 'popup.html');
+					const statHtml = await fs.stat(popupHtmlSrc);
+					if (statHtml.isFile()) {
+						await fs.copyFile(popupHtmlSrc, popupHtmlDst);
+					}
+				} catch {}
+				try {
+					const popupJsSrc = resolve(__dirname, 'popup.js');
+					const popupJsDst = resolve(outDir, 'popup.js');
+					const statJs = await fs.stat(popupJsSrc);
+					if (statJs.isFile()) {
+						await fs.copyFile(popupJsSrc, popupJsDst);
 					}
 				} catch {}
 		}

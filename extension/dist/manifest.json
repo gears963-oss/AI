@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
   "name": "ProspectIQ - ICP Finder",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "action": {
     "default_popup": "popup.html"
   },
   "background": {
-    "service_worker": "background/index.js"
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
@@ -15,7 +15,7 @@
         "http://*/*"
       ],
       "js": [
-        "content/index.js"
+        "content/detector.js"
       ],
       "run_at": "document_idle"
     }

@@ -187,14 +187,6 @@
 	}
 
 	function renderCard(result) {
-		function escapeHtml(s) {
-			return String(s)
-				.replace(/&/g, '&amp;')
-				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;')
-				.replace(/"/g, '&quot;')
-				.replace(/'/g, '&#39;');
-		}
 		let card = document.getElementById(CARD_ID);
 		if (!card) {
 			card = document.createElement('div');
@@ -211,12 +203,24 @@
 			card.style.width = '320px';
 			document.body.appendChild(card);
 		}
-		const bullets = (result.reasons || [])
-			.slice(0, 3)
-			.map((r) => `• ${escapeHtml(r)}`)
-			.join('<br/>');
-		const header = `Score: ${Number(result.score)}/100`;
-		card.innerHTML = `<div style="font-weight:700;margin-bottom:6px">${escapeHtml(header)}</div><div style="font-size:12px;color:#cbd5e1">${bullets}</div>`;
+		card.replaceChildren();
+		const header = document.createElement('div');
+		header.style.fontWeight = '700';
+		header.style.marginBottom = '6px';
+		header.textContent = `Score: ${Number(result.score)}/100`;
+		card.appendChild(header);
+		const list = document.createElement('ul');
+		list.style.margin = '0';
+		list.style.padding = '0';
+		list.style.listStyle = 'none';
+		list.style.fontSize = '12px';
+		list.style.color = '#cbd5e1';
+		for (const reason of (result.reasons || []).slice(0, 3)) {
+			const item = document.createElement('li');
+			item.textContent = `• ${reason}`;
+			list.appendChild(item);
+		}
+		card.appendChild(list);
 
 		// badge color by score
 		const badge = document.getElementById(BADGE_ID);
@@ -236,11 +240,16 @@
 	}
 
 	async function onScoreClick() {
+		console.log('[PIQ/content] scoring click', location.href);
 		const icp = await loadICP();
 		const f = extractFeatures();
 		const pageText = (f.texte || (document.body?.innerText || '')).slice(0, 30_000);
 		// First compute rules
 		const rules = computeScore(icp, f);
+		renderCard({
+			score: rules.score,
+			reasons: [...(rules.reasons || []).slice(0, 2), 'IA: pending…']
+		});
 		// Ask AI via background
 		try {
 			const aiResp = await new Promise((resolve) => {
@@ -250,7 +259,7 @@
 				);
 			});
 			let finalScore = rules.score;
-			let reasons = [...rules.reasons];
+			let reasons = [...(rules.reasons || [])];
 			if (aiResp && aiResp.ok && aiResp.data) {
 				const ai = aiResp.data;
 				const aiScore = Number(ai.score_ai) || 0;

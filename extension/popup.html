@@ -1,81 +1,77 @@
-<!doctype html>
-<html lang="fr">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>ProspectIQ - ICP</title>
-		<style>
-			body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; padding: 12px; width: 340px; }
-			h3 { margin: 0 0 10px; }
-			label { display: block; margin: 8px 0; }
-			input { width: 100%; box-sizing: border-box; padding: 6px 8px; }
-			.row { display: flex; gap: 8px; }
-			.row > label { flex: 1; }
-			button { padding: 8px 10px; border: 0; border-radius: 6px; cursor: pointer; }
-			.actions { display: flex; gap: 8px; margin-top: 10px; }
-		</style>
-	</head>
-	<body>
-		<h3>ICP actif</h3>
-
-		<label>
-			<div>Pays</div>
-			<input id="pays" placeholder="FR" />
-		</label>
-
-		<label>
-			<div>Secteurs (csv)</div>
-			<input id="secteurs" placeholder="ecommerce, retail" />
-		</label>
-
-		<div class="row">
-			<label>
-				<div>Taille min</div>
-				<input id="taille_min" type="number" placeholder="10" />
-			</label>
-			<label>
-				<div>Taille max</div>
-				<input id="taille_max" type="number" placeholder="200" />
-			</label>
-		</div>
-
-		<label>
-			<div>Roles (csv)</div>
-			<input id="roles" placeholder="CEO, VP Marketing" />
-		</label>
-
-		<label>
-			<div>Note Google max</div>
-			<input id="note_google_max" type="number" step="0.1" placeholder="4.2" />
-		</label>
-
-		<label>
-			<div>Technos incluses (csv)</div>
-			<input id="techno_inclues" placeholder="Shopify, WooCommerce" />
-		</label>
-
-		<label>
-			<div>Exclusions (mots, csv)</div>
-			<input id="exclusions_mots" placeholder="agence, freelance" />
-		</label>
-
-		<div class="actions">
-			<button id="save" style="background:#22c55e;color:#0f172a;font-weight:700">Enregistrer l’ICP</button>
-			<button id="load" style="background:#e2e8f0">Charger</button>
-		</div>
-
-		<h3 style="margin: 14px 0 6px;">Backend IA</h3>
-		<label>
-			<div>BACKEND_URL (ex: https://ton-backend.vercel.app)</div>
-			<input id="piq_backend_url" placeholder="https://..." />
-		</label>
-		<div class="actions">
-			<button id="save_backend" style="background:#22c55e;color:#0f172a;font-weight:700">Enregistrer URL</button>
-			<button id="load_backend" style="background:#e2e8f0">Charger URL</button>
-		</div>
-
-		<script src="popup.js"></script>
-	</body>
-</html>
-
-
+<!doctype html><html><head>
+<meta charset="utf-8"><title>ProspectIQ – Config</title>
+<meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'none'">
+<style>
+body{font-family:system-ui,sans-serif;margin:0;padding:0;width:380px;max-height:600px;overflow-y:auto}
+.tabs{display:flex;border-bottom:2px solid #e2e8f0;background:#f8fafc}
+.tab{flex:1;padding:10px;text-align:center;cursor:pointer;border:none;background:transparent;font-weight:600;color:#64748b}
+.tab.active{color:#0f172a;border-bottom:2px solid #22c55e}
+.tab-content{display:none;padding:12px}
+.tab-content.active{display:block}
+h3{margin:0 0 10px;font-size:14px}
+label{display:block;margin:8px 0;font-size:12px}
+label>div{font-weight:600;margin-bottom:4px}
+input,textarea,select{width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px}
+textarea{min-height:80px;resize:vertical;font-family:inherit}
+.row{display:flex;gap:8px}
+.row>label{flex:1}
+button{padding:8px 10px;border:0;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.actions{display:flex;gap:8px;margin-top:10px}
+.btn-primary{background:#22c55e;color:#0f172a}
+.btn-secondary{background:#e2e8f0;color:#0f172a}
+.btn-small{padding:4px 8px;font-size:11px}
+#status{margin-top:10px;white-space:pre-wrap;font-size:11px;opacity:.8;padding:8px;background:#f1f5f9;border-radius:4px}
+.profile-item{display:flex;align-items:center;gap:8px;padding:8px;margin:4px 0;background:#f8fafc;border-radius:4px;border:1px solid #e2e8f0}
+.profile-item.active{background:#dcfce7;border-color:#22c55e}
+.profile-name{flex:1;font-weight:600;font-size:12px}
+.profile-actions{display:flex;gap:4px}
+.star{font-size:16px;cursor:pointer}
+.star.favorite{color:#fbbf24}
+</style></head><body>
+<div class="tabs">
+<button class="tab active" data-tab="scoring">Scoring</button>
+<button class="tab" data-tab="chat">Chat IA</button>
+<button class="tab" data-tab="profiles">Profils</button>
+</div>
+<div id="tab-scoring" class="tab-content active">
+<h3>Profil actif</h3>
+<select id="active_profile_select"></select>
+<button id="activate_profile" class="btn-primary" style="margin-top:8px">Activer</button>
+<h3 style="margin-top:16px">ICP manuel</h3>
+<label><div>Pays</div><input id="pays" placeholder="FR"></label>
+<label><div>Secteurs (csv)</div><input id="secteurs" placeholder="ecommerce, retail"></label>
+<div class="row">
+<label><div>Taille min</div><input id="taille_min" type="number" placeholder="10"></label>
+<label><div>Taille max</div><input id="taille_max" type="number" placeholder="200"></label>
+</div>
+<label><div>Roles (csv)</div><input id="roles" placeholder="CEO, VP Marketing"></label>
+<label><div>Note Google max</div><input id="note_google_max" type="number" step="0.1" placeholder="4.2"></label>
+<label><div>Technos incluses (csv)</div><input id="techno_inclues" placeholder="Shopify, WooCommerce"></label>
+<label><div>Exclusions (mots, csv)</div><input id="exclusions_mots" placeholder="agence, freelance"></label>
+<div class="actions">
+<button id="save_icp" class="btn-primary">Enregistrer l'ICP</button>
+<button id="load_icp" class="btn-secondary">Charger</button>
+</div>
+<h3 style="margin-top:16px">Backend IA</h3>
+<label><div>Backend URL</div><input id="backend_url" placeholder="https://prospectiq-ai.vercel.app"></label>
+<div class="actions">
+<button id="save_backend" class="btn-primary">Enregistrer backend</button>
+<button id="test_backend" class="btn-secondary">Tester backend</button>
+</div>
+</div>
+<div id="tab-chat" class="tab-content">
+<h3>Décrire un profil de scoring</h3>
+<textarea id="chat_input" placeholder="Ex: Je cherche des entreprises e-commerce en France, entre 50 et 200 employés, utilisant Shopify, avec une note Google inférieure à 4.5. Exclure les agences et les freelances."></textarea>
+<button id="chat_compile" class="btn-primary" style="margin-top:8px;width:100%">Compiler en profil</button>
+<div id="chat_result" style="margin-top:12px;padding:8px;background:#f1f5f9;border-radius:4px;display:none"></div>
+</div>
+<div id="tab-profiles" class="tab-content">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3 style="margin:0">Profils</h3>
+<button id="new_profile" class="btn-primary btn-small">Nouveau profil</button>
+</div>
+<div id="profiles_list"></div>
+</div>
+<div id="status"></div>
+<script src="popup.js"></script>
+</body></html>

@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "postbuild": "node scripts/postbuild.cjs",
+    "verify": "node scripts/verify-build.cjs",
     "clean": "rimraf dist",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
