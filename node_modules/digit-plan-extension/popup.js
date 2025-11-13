@@ -145,27 +145,34 @@
   // Chat IA
   async function compileProfile(){
     const result = EL('chat_result');
-    try{
-      const input = EL('chat_input');
-      const nlPrompt = input.value.trim();
-      if(!nlPrompt){
-        log('Saisissez une description');
-        result.style.display = 'block';
-        result.innerHTML = '<div style="color:#f59e0b">⚠️ Saisissez une description de profil</div>';
-        return;
-      }
-      const {[BACKEND_KEY]:backendUrl} = await chrome.storage.sync.get(BACKEND_KEY);
-      if(!backendUrl){
-        log('Configurez d\'abord le Backend URL dans l\'onglet Scoring');
-        result.style.display = 'block';
-        result.innerHTML = '<div style="color:#f59e0b">⚠️ Configurez d\'abord le Backend URL</div>';
-        return;
-      }
-      log('Compilation en cours...');
+    const input = EL('chat_input');
+    
+    // Validation initiale
+    const nlPrompt = input.value.trim();
+    if(!nlPrompt){
+      log('Saisissez une description');
       result.style.display = 'block';
-      result.innerHTML = '<div style="color:#64748b">⏳ Compilation en cours...</div>';
-      
-      const base = backendUrl.replace(/\/$/,'');
+      result.innerHTML = '<div style="color:#f59e0b">⚠️ Saisissez une description de profil</div>';
+      return;
+    }
+    
+    const {[BACKEND_KEY]:backendUrl} = await chrome.storage.sync.get(BACKEND_KEY);
+    if(!backendUrl){
+      log('Configurez d\'abord le Backend URL dans l\'onglet Scoring');
+      result.style.display = 'block';
+      result.innerHTML = '<div style="color:#f59e0b">⚠️ Configurez d\'abord le Backend URL</div>';
+      return;
+    }
+    
+    log('Compilation en cours...');
+    result.style.display = 'block';
+    result.innerHTML = '<div style="color:#64748b">⏳ Compilation en cours...</div>';
+    
+    const base = backendUrl.replace(/\/$/,'');
+    let data;
+    
+    // Try/catch autour de l'appel réseau
+    try {
       let resp;
       try {
         resp = await fetch(`${base}/api/compile_profile`,{
@@ -174,27 +181,95 @@
           body:JSON.stringify({nl_prompt:nlPrompt})
         });
       } catch (fetchErr) {
-        // Network error (CORS, timeout, etc.)
-        throw new Error(`Erreur réseau: ${fetchErr.message || 'Impossible de contacter le backend'}`);
+        // Erreur réseau (CORS, timeout, connexion, etc.)
+        console.error('[PIQ/popup] Erreur réseau:', fetchErr);
+        const networkError = `Erreur réseau: ${fetchErr.message || 'Impossible de contacter le backend'}`;
+        alert('❌ Erreur de connexion\n\n' + networkError + '\n\nVérifiez:\n- L\'URL backend est correcte\n- Votre connexion internet\n- Les permissions CORS du backend');
+        result.style.display = 'block';
+        result.innerHTML = `<div style="color:#ef4444;font-weight:600;margin-bottom:4px">❌ Erreur réseau</div><div style="color:#ef4444;font-size:12px">${networkError}</div>`;
+        log('Erreur réseau: ' + networkError);
+        return;
       }
       
-      let errorData = null;
-      if(!resp.ok) {
+      // Lire la réponse une seule fois
+      try {
+        const text = await resp.text();
         try {
-          errorData = await resp.json();
+          data = JSON.parse(text);
         } catch {
-          errorData = { error: `HTTP ${resp.status}`, detail: await resp.text().catch(() => '') };
+          // Si ce n'est pas du JSON, créer un objet d'erreur
+          data = { error: `HTTP ${resp.status}`, detail: text.slice(0, 500) };
         }
-        const errorMsg = errorData?.error || `HTTP ${resp.status}`;
-        const errorDetail = errorData?.detail || '';
-        throw new Error(`${errorMsg}${errorDetail ? ': ' + errorDetail : ''}`);
+      } catch (readErr) {
+        console.error('[PIQ/popup] Erreur lecture réponse:', readErr);
+        const readError = `Erreur lecture réponse: ${readErr.message}`;
+        alert('❌ Erreur de lecture\n\n' + readError);
+        result.style.display = 'block';
+        result.innerHTML = `<div style="color:#ef4444;font-weight:600;margin-bottom:4px">❌ Erreur</div><div style="color:#ef4444;font-size:12px">${readError}</div>`;
+        log('Erreur lecture: ' + readError);
+        return;
       }
       
-      const data = await resp.json();
-      const {name, compiled, summary} = data;
-      if(!name || !compiled){
-        throw new Error('Réponse invalide du backend: ' + JSON.stringify(data).slice(0, 100));
+      // Vérifier si c'est une réponse d'erreur HTTP
+      if (!resp.ok) {
+        const errorMsg = data?.error || `HTTP ${resp.status}`;
+        const errorDetail = data?.detail || data?.message || '';
+        const fullError = `${errorMsg}${errorDetail ? ': ' + errorDetail : ''}`;
+        console.error('[PIQ/popup] Erreur HTTP:', resp.status, fullError);
+        alert('❌ Erreur du serveur\n\n' + fullError);
+        result.style.display = 'block';
+        result.innerHTML = `<div style="color:#ef4444;font-weight:600;margin-bottom:4px">❌ Erreur HTTP ${resp.status}</div><div style="color:#ef4444;font-size:12px">${fullError}</div>`;
+        log('Erreur HTTP: ' + fullError);
+        return;
       }
+      
+      // Vérifier si c'est une réponse d'erreur dans le JSON
+      if (data.error) {
+        const errorMsg = data.error + (data.detail ? ': ' + data.detail : '');
+        console.error('[PIQ/popup] Erreur dans la réponse:', errorMsg);
+        alert('❌ Erreur du backend\n\n' + errorMsg);
+        result.style.display = 'block';
+        result.innerHTML = `<div style="color:#ef4444;font-weight:600;margin-bottom:4px">❌ Erreur</div><div style="color:#ef4444;font-size:12px">${errorMsg}</div>`;
+        log('Erreur backend: ' + errorMsg);
+        return;
+      }
+      
+    } catch (e) {
+      // Erreur inattendue
+      console.error('[PIQ/popup] Erreur compilation inattendue:', e);
+      const errorMsg = e.message || String(e);
+      alert('❌ Erreur inattendue\n\n' + errorMsg);
+      result.style.display = 'block';
+      result.innerHTML = `<div style="color:#ef4444;font-weight:600;margin-bottom:4px">❌ Erreur</div><div style="color:#ef4444;font-size:12px">${errorMsg}</div>`;
+      log('Erreur: ' + errorMsg);
+      return;
+    }
+    
+    // Validation de name et compiled (objet non-null)
+    const {name, compiled, summary} = data;
+    
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      const errorMsg = 'Réponse invalide: nom de profil manquant. Réponse: ' + JSON.stringify(data).slice(0, 200);
+      console.error('[PIQ/popup] Validation name échouée:', errorMsg);
+      alert('❌ Réponse invalide\n\nLe backend n\'a pas retourné de nom de profil valide.');
+      result.style.display = 'block';
+      result.innerHTML = `<div style="color:#ef4444;font-weight:600;margin-bottom:4px">❌ Réponse invalide</div><div style="color:#ef4444;font-size:12px">Nom de profil manquant</div>`;
+      log('Validation échouée: ' + errorMsg);
+      return;
+    }
+    
+    if (!compiled || typeof compiled !== 'object' || compiled === null || Array.isArray(compiled)) {
+      const errorMsg = 'Réponse invalide: données compilées manquantes ou invalides. Réponse: ' + JSON.stringify(data).slice(0, 200);
+      console.error('[PIQ/popup] Validation compiled échouée:', errorMsg);
+      alert('❌ Réponse invalide\n\nLe backend n\'a pas retourné de données compilées valides.');
+      result.style.display = 'block';
+      result.innerHTML = `<div style="color:#ef4444;font-weight:600;margin-bottom:4px">❌ Réponse invalide</div><div style="color:#ef4444;font-size:12px">Données compilées manquantes</div>`;
+      log('Validation échouée: ' + errorMsg);
+      return;
+    }
+    
+    // Si on arrive ici, tout est valide - créer le profil
+    try {
       const profile = {
         id: crypto.randomUUID(),
         name,
@@ -203,10 +278,12 @@
         compiled,
         isFavorite: false
       };
+      
       const profiles = await loadProfiles();
       profiles.push(profile);
       await saveProfiles(profiles);
       await setActiveProfile(profile.id);
+      
       result.style.display = 'block';
       result.innerHTML = `
         <div style="font-weight:600;margin-bottom:4px;color:#22c55e">✅ Profil créé: ${name}</div>
@@ -216,16 +293,12 @@
       log('Profil compilé et activé ✅');
       renderProfilesList();
       renderActiveProfileSelect();
-    }catch(e){
-      console.error('[PIQ/popup] Erreur compilation:', e);
-      const errorMsg = e.message || String(e);
-      log('Erreur compilation: '+errorMsg);
+    } catch (saveErr) {
+      console.error('[PIQ/popup] Erreur sauvegarde profil:', saveErr);
+      alert('❌ Erreur de sauvegarde\n\nImpossible de sauvegarder le profil: ' + (saveErr.message || String(saveErr)));
       result.style.display = 'block';
-      result.innerHTML = `
-        <div style="color:#ef4444;font-weight:600;margin-bottom:4px">❌ Erreur</div>
-        <div style="color:#ef4444;font-size:12px">${errorMsg}</div>
-        <div style="color:#94a3b8;font-size:11px;margin-top:6px">Vérifiez l'URL backend et réessayez.</div>
-      `;
+      result.innerHTML = `<div style="color:#ef4444;font-weight:600;margin-bottom:4px">❌ Erreur sauvegarde</div><div style="color:#ef4444;font-size:12px">${saveErr.message || String(saveErr)}</div>`;
+      log('Erreur sauvegarde: ' + saveErr);
     }
   }
   

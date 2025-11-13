@@ -1,0 +1,29 @@
+name: backend-ci
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+jobs:
+  backend-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package.json
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci || npm i
+      - name: Backend CI check
+        working-directory: ./backend
+        run: node -e "console.log('backend CI ok')"
+
